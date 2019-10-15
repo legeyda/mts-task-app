@@ -1,0 +1,6 @@
+{
+  "library": "spring-boot",
+  "modelPackage": "com.legeyda.mts.model",
+  "apiPackage": "com.legeyda.mts.api",
+  "invokerPackage": "com.legeyda.mts"
+}
