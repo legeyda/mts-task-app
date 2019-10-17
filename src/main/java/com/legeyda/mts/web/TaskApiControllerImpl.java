@@ -6,11 +6,15 @@ import com.legeyda.mts.model.Task;
 import com.legeyda.mts.model.TaskImpl;
 import com.legeyda.mts.store.Store;
 import com.legeyda.mts.util.Sleep;
+import com.legeyda.mts.worker.TaskWorker;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.context.request.NativeWebRequest;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Optional;
@@ -21,19 +25,38 @@ import java.util.UUID;
 public class TaskApiControllerImpl extends TaskApiController {
 
 	private Store<UUID, Task> taskStore;
+	private TaskWorker taskWorker;
+	private AsyncTaskExecutor executor;
 
 	public TaskApiControllerImpl(NativeWebRequest request) {
 		super(request);
 	}
 
+	@Autowired
 	public void setTaskStore(Store<UUID, Task> taskStore) {
 		this.taskStore = taskStore;
+	}
+
+	@Autowired
+	public void setTaskWorker(TaskWorker taskWorker) {
+		this.taskWorker = taskWorker;
+	}
+
+	@Autowired
+	public void setExecutor(AsyncTaskExecutor executor) {
+		this.executor = executor;
+	}
+
+	@PostConstruct
+	public void init() {
+		this.executor.execute(this.taskWorker);
 	}
 
 	public ResponseEntity<UUID> createTask() {
 		final UUID id = UUID.randomUUID();
 		taskStore.write(UUID.randomUUID(), (Optional<Task> task) ->
 				Optional.of(new TaskImpl(Task.Status.created, Instant.now())));
+		taskWorker.accept(id);
 		return new ResponseEntity<>(id, HttpStatus.ACCEPTED); // todo тут лучше HttpStatus.CREATED
 	}
 

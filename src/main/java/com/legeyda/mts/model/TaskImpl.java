@@ -14,11 +14,11 @@ public class TaskImpl implements Task {
 
 	@Override
 	public Status getStatus() {
-		return null;
+		return status;
 	}
 
 	@Override
 	public Instant getTimestamp() {
-		return null;
+		return timestamp;
 	}
 }

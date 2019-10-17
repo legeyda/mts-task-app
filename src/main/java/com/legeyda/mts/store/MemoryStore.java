@@ -1,11 +1,9 @@
 package com.legeyda.mts.store;
 
-import com.legeyda.mts.model.Task;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 

@@ -23,6 +23,7 @@ public class TaskWorker implements Consumer<UUID>, Runnable {
 
 	private Store<UUID, Task> taskStore;
 	private Supplier<Instant> currentTime;
+	private Integer sleepDurationMillis = 1000;
 
 	@Autowired
 	public void setTaskStore(Store<UUID, Task> taskStore) {
@@ -32,6 +33,10 @@ public class TaskWorker implements Consumer<UUID>, Runnable {
 	@Autowired
 	public void setClock(Supplier<Instant> currentTime) {
 		this.currentTime = currentTime;
+	}
+
+	public void setSleepDurationMillis(Integer sleepDurationMillis) {
+		this.sleepDurationMillis = sleepDurationMillis;
 	}
 
 	/** взять задачу в работу */
@@ -49,25 +54,29 @@ public class TaskWorker implements Consumer<UUID>, Runnable {
 	/** переводить задачи на завершённый статус истечении 5 минут*/
 	@Override
 	public void run() {
-		while(true) {
-			final Queue<UUID> outputQueue = new LinkedList<>();
-			while(!inputQueue.isEmpty()) {
-				final Optional<UUID> id = Optional.ofNullable(inputQueue.poll());
-				if (id.isPresent()) {
-					final Optional<Task> task = taskStore.read(id.get());
-					if (task.isPresent() && Task.Status.running == task.get().getStatus()) {
-						if (task.get().getTimestamp().plusSeconds(5*60).isBefore(this.currentTime.get())) {
-							// если время ожидания ещё не истекло, кладём обратно в очередь позже попробуем ещё
-							outputQueue.offer(id.get());
-						} else {
-							this.taskStore.write(id.get(), (Optional<Task> dbValue) ->
-									Optional.of(new TaskImpl(Task.Status.finished, this.currentTime.get())));
+		try {
+			while (true) {
+				final Queue<UUID> outputQueue = new LinkedList<>();
+				while (!inputQueue.isEmpty()) {
+					final Optional<UUID> id = Optional.ofNullable(inputQueue.poll());
+					if (id.isPresent()) {
+						final Optional<Task> task = taskStore.read(id.get());
+						if (task.isPresent() && Task.Status.running == task.get().getStatus()) {
+							if (task.get().getTimestamp().plusSeconds(5 * 60).isAfter(this.currentTime.get())) {
+								// если время ожидания ещё не истекло, кладём обратно в очередь позже попробуем ещё
+								outputQueue.offer(id.get());
+							} else {
+								this.taskStore.write(id.get(), (Optional<Task> dbValue) ->
+										Optional.of(new TaskImpl(Task.Status.finished, this.currentTime.get())));
+							}
 						}
 					}
 				}
+				inputQueue.addAll(outputQueue);
+				new Sleep(this.sleepDurationMillis).run();
 			}
-			inputQueue.addAll(outputQueue);
-			new Sleep(1000).run();
+		} finally {
+			//
 		}
 	}
 }
