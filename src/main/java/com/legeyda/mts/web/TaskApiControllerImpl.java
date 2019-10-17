@@ -52,14 +52,16 @@ public class TaskApiControllerImpl extends TaskApiController {
 		this.executor.execute(this.taskWorker);
 	}
 
+	@Override
 	public ResponseEntity<UUID> createTask() {
 		final UUID id = UUID.randomUUID();
-		taskStore.write(UUID.randomUUID(), (Optional<Task> task) ->
+		taskStore.write(id, (Optional<Task> task) ->
 				Optional.of(new TaskImpl(Task.Status.created, Instant.now())));
 		taskWorker.accept(id);
 		return new ResponseEntity<>(id, HttpStatus.ACCEPTED); // todo тут лучше HttpStatus.CREATED
 	}
 
+	@Override
 	public ResponseEntity<TaskStatus> getFinishedTask(UUID taskId) {
 		final long deadline = System.currentTimeMillis() + 5*60*1000;
 		Optional<Task> result;
@@ -77,6 +79,7 @@ public class TaskApiControllerImpl extends TaskApiController {
 				.orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 	}
 
+	@Override
 	public ResponseEntity<TaskStatus> getTaskSync(UUID id) {
 		return taskStore.read(id)
 				.map((Task task) -> {

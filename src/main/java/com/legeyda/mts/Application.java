@@ -10,7 +10,7 @@ import org.springframework.context.annotation.FilterType;
 @SpringBootApplication
 @EnableAutoConfiguration
 @ComponentScan(
-		basePackages = { "com.legeyda.mts" },
+		basePackages = { "com.legeyda.mts", "org.openapitools.configuration" },
 		excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com\\.legeyda\\.mts\\.gen.*"))
 public class Application {
 	public static void main(String[] args) {

@@ -33,34 +33,32 @@ public class TaskWorkerTest {
 
 	@Test
 	public void test() {
-		final AtomicReference<Instant> now = new AtomicReference<>(Instant.ofEpochMilli(0));
+		final AtomicReference<Instant> currentTime = new AtomicReference<>(Instant.ofEpochMilli(0));
 
 		final Store<UUID, Task> store = new MemoryStore<>();
 
 		final TaskWorker testee = new TaskWorker();
-		testee.setClock(now::get);
+		testee.setClock(currentTime::get);
 		testee.setTaskStore(store);
 		testee.setSleepDurationMillis(1);
 		executorService.submit(testee);
 
 		final UUID id = UUID.randomUUID();
-		store.write(id, (Optional<Task> old) -> Optional.of(new TaskImpl(Task.Status.created, now.get())));
+		store.write(id, (Optional<Task> ignoredOldValue) -> Optional.of(new TaskImpl(Task.Status.created, currentTime.get())));
 		testee.accept(id);
 
-
-		now.set(Instant.ofEpochMilli(5*60*1000-1));
+		currentTime.set(Instant.ofEpochMilli(5*60*1000-1));
 		new Sleep(10).run();
 		Optional<Task> task = store.read(id);
 		assertThat(task).isPresent();
 		assertThat(task.get().getStatus()).isEqualTo(Task.Status.running);
 
-
-		now.set(Instant.ofEpochMilli(5*60*1000+1));
+		currentTime.set(Instant.ofEpochMilli(5*60*1000+1));
 		new Sleep(10).run();
 		task = store.read(id);
 		assertThat(task).isPresent();
 		assertThat(task.get().getStatus()).isEqualTo(Task.Status.finished);
-		assertThat(task.get().getTimestamp()).isEqualTo(now.get());
+		assertThat(task.get().getTimestamp()).isEqualTo(currentTime.get());
 
 	}
 
