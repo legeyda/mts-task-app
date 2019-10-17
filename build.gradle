@@ -1,18 +1,43 @@
+
+buildscript {
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:2.1.6.RELEASE")
+	}
+}
+
 plugins {
 	id 'java'
 	id 'org.hidetake.swagger.generator' version '2.18.1'
 }
 
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+
 repositories {
 	jcenter()
+	mavenCentral()
 }
 
 dependencies {
+	// spring
 	compile 'org.springframework.boot:spring-boot-starter-web:2.1.3.RELEASE'
+	compile 'org.aspectj:aspectjweaver:1.8.2'
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	
+	
+	// swagger
 	compile 'io.swagger.core.v3:swagger-annotations:2.0.7'
 	compile 'io.springfox:springfox-swagger2:2.9.2'
 	swaggerCodegen 'org.openapitools:openapi-generator-cli:3.3.4'
 }
+
+
+springBoot {
+	mainClassName = 'com.legeyda.mts.Application'
+}
+
 
 swaggerSources {
 	api {

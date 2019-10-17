@@ -1,6 +1,6 @@
 package com.legeyda.mts.model;
 
-import java.util.Date;
+import java.time.Instant;
 
 public interface Task {
 
@@ -12,5 +12,5 @@ public interface Task {
 
 	Status getStatus();
 
-	Date getTimestamp();
+	Instant getTimestamp();
 }

@@ -1,12 +1,16 @@
 package com.legeyda.mts.store;
 
 import com.legeyda.mts.model.Task;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+@Component
+@Profile("test")
 public class MemoryStore<K, V> implements Store<K, V> {
 
 	private final ConcurrentHashMap<K, V> data = new ConcurrentHashMap<>();

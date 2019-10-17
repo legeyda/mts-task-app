@@ -1,14 +1,13 @@
 package com.legeyda.mts.model;
 
-import java.sql.Timestamp;
-import java.util.Date;
+import java.time.Instant;
 
 public class TaskImpl implements Task {
 
 	private Status status;
-	private Date timestamp;
+	private Instant timestamp;
 
-	public TaskImpl(Status status, Date timestamp) {
+	public TaskImpl(Status status, Instant timestamp) {
 		this.status = status;
 		this.timestamp = timestamp;
 	}
@@ -19,7 +18,7 @@ public class TaskImpl implements Task {
 	}
 
 	@Override
-	public Date getTimestamp() {
+	public Instant getTimestamp() {
 		return null;
 	}
 }

@@ -1,8 +1,13 @@
 package com.legeyda.mts.store;
 
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
 import java.util.Optional;
 import java.util.function.Function;
 
+@Component
+@Profile("default")
 public class RedisStore<K, V> implements Store<K, V> {
 
 	private final MemoryStore<K, V> data = new MemoryStore<>();
