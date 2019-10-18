@@ -20,7 +20,11 @@ public class RedisStore<K> implements Store<K, Task> {
 
 	@Override
 	public Optional<Task> read(K id) {
-		return restore(new Jedis().get(this.getKey(id)));
+		return restore(getJedis().get(this.getKey(id)));
+	}
+
+	private Jedis getJedis() {
+		return new Jedis();
 	}
 
 	private String getKey(K id) {
@@ -29,7 +33,7 @@ public class RedisStore<K> implements Store<K, Task> {
 
 	@Override
 	public void write(K id, Function<Optional<Task>, Optional<? extends Task>> func) {
-		final Jedis jedis = new Jedis();
+		final Jedis jedis = getJedis();
 		final JedisLock lock = new JedisLock(jedis, this.getKey(id) + "_lock");
 		try {
 			lock.acquire();
