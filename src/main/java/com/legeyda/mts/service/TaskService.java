@@ -3,6 +3,7 @@ package com.legeyda.mts.service;
 import com.legeyda.mts.model.Task;
 import com.legeyda.mts.model.TaskImpl;
 import com.legeyda.mts.store.Store;
+import com.legeyda.mts.util.CurrentTime;
 import com.legeyda.mts.util.Sleep;
 import com.legeyda.mts.worker.TaskWorker;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +15,17 @@ import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @Component
 public class TaskService {
 
-
+	private Supplier<Instant> currentTime = new CurrentTime();
 	private Store<UUID, Task> taskStore;
 	private TaskWorker taskWorker;
 	private AsyncTaskExecutor executor;
+	private Integer sleepDuration = 1000;
+
 
 	@Autowired
 	public void setTaskStore(Store<UUID, Task> taskStore) {
@@ -38,6 +42,14 @@ public class TaskService {
 		this.executor = executor;
 	}
 
+	@Autowired
+	public void setCurrentTime(Supplier<Instant> currentTime) {
+		this.currentTime = currentTime;
+	}
+
+	public void setSleepDuration(Integer sleepDuration) {
+		this.sleepDuration = sleepDuration;
+	}
 
 	@PostConstruct
 	public void init() {
@@ -53,16 +65,16 @@ public class TaskService {
 	}
 
 	public Optional<Task> getFinishedTask(@PathVariable("taskId") UUID taskId) {
-		final long deadline = System.currentTimeMillis() + 2*60*1000;
+		final Instant deadline = this.currentTime.get().plusSeconds(2*60);
 		Optional<Task> result;
 		while(true) {
 			result = taskStore.read(taskId);
 			if(!result.isPresent()
 			   || Task.Status.finished.equals(result.get().getStatus())
-			   || System.currentTimeMillis() > deadline) {
+			   || this.currentTime.get().isAfter(deadline)) {
 				break;
 			}
-			new Sleep(1000).run();
+			new Sleep(this.sleepDuration).run();
 		}
 		return result;
 	}
