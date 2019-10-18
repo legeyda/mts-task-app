@@ -41,6 +41,12 @@ springBoot {
 	mainClassName = 'com.legeyda.mts.Application'
 }
 
+bootRun {
+	if (System.properties.containsKey('server.port')) {
+		jvmArgs += '-Dserver.port=' + System.properties.getProperty('server.port') // обязательно, т-к абс отвечает в этой кодировке todo починить
+	}
+}
+
 
 swaggerSources {
 	api {
