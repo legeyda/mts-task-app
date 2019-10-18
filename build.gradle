@@ -29,8 +29,12 @@ dependencies {
 	compile 'io.swagger.core.v3:swagger-annotations:2.0.7'
 	compile 'io.springfox:springfox-swagger2:2.9.2'
 	swaggerCodegen 'org.openapitools:openapi-generator-cli:3.3.4'
+
+	// redis
+	compile 'redis.clients:jedis:2.9.0'
+	compile 'com.github.jedis-lock:jedis-lock:1.0.0'
 	
-	//
+	// test
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile("org.assertj:assertj-core:3.11.1")
 
