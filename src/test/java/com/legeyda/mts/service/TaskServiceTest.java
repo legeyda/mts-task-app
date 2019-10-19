@@ -104,7 +104,7 @@ public class TaskServiceTest {
 		new Sleep(10).run();
 		assertThat(result).isNotDone();
 
-		// если 5 минуты прошло, выкидывает timeout
+		// если 5 минут прошло, выкидывает timeout
 		currentTime.set(Instant.ofEpochSecond(5*60 + 1));
 		new Sleep(10).run();
 		assertThat(result).isDone();
