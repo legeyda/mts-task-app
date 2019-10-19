@@ -9,14 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.time.ZoneOffset;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
-
-import static com.legeyda.mts.model.Task.Status.CREATED;
-import static com.legeyda.mts.model.Task.Status.RUNNING;
 
 
 @Controller
@@ -26,6 +24,11 @@ public class TaskApiControllerImpl extends TaskApiController {
 
 	public TaskApiControllerImpl(NativeWebRequest request) {
 		super(request);
+	}
+
+	@RequestMapping("/")
+	public String index() {
+		return "redirect:index.html";
 	}
 
 	@Autowired
