@@ -7,7 +7,7 @@ public interface Store<K, V> {
 
 	Optional<V> read(K key);
 
-	/** атомарно вычислить значение на основе текущего значения */
+	/** атомарно вычислить новое значение на основе текущего значения */
 	void write(K key, Function<Optional<V>, Optional<? extends V>> func);
 
 }

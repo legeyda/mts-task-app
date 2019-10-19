@@ -62,7 +62,7 @@ public class TaskServiceTest {
 
 		// воркер сразу подхватил её и перевёл на running
 		assertThat(service.getTaskSync(id)).isPresent();
-		assertThat(store.read(id).get().getStatus()).isEqualTo(Task.Status.running);
+		assertThat(store.read(id).get().getStatus()).isEqualTo(Task.Status.RUNNING);
 		assertThat(store.read(id).get().getTimestamp()).isEqualTo(Instant.ofEpochSecond(0));
 
 		// вызываем getFinishedTask
@@ -95,13 +95,13 @@ public class TaskServiceTest {
 		currentTime.set(Instant.ofEpochSecond(5*60+1));
 		new Sleep(10).run();
 		assertThat(result).isDone();
-		assertThat(result.get().get().getStatus()).isEqualTo(Task.Status.finished);
+		assertThat(result.get().get().getStatus()).isEqualTo(Task.Status.FINISHED);
 
 		// если таск уже готов, возвращается сразу
 		result = executorService.submit(() -> service.getFinishedTask(id));
 		new Sleep(10).run();
 		assertThat(result).isDone();
-		assertThat(result.get().get().getStatus()).isEqualTo(Task.Status.finished);
+		assertThat(result.get().get().getStatus()).isEqualTo(Task.Status.FINISHED);
 
 	}
 

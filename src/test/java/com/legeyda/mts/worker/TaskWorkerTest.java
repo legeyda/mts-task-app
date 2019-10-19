@@ -44,20 +44,20 @@ public class TaskWorkerTest {
 		executorService.submit(testee);
 
 		final UUID id = UUID.randomUUID();
-		store.write(id, (Optional<Task> ignoredOldValue) -> Optional.of(new TaskImpl(Task.Status.created, currentTime.get())));
+		store.write(id, (Optional<Task> ignoredOldValue) -> Optional.of(new TaskImpl(Task.Status.CREATED, currentTime.get())));
 		testee.accept(id);
 
 		currentTime.set(Instant.ofEpochMilli(5*60*1000-1));
 		new Sleep(10).run();
 		Optional<Task> task = store.read(id);
 		assertThat(task).isPresent();
-		assertThat(task.get().getStatus()).isEqualTo(Task.Status.running);
+		assertThat(task.get().getStatus()).isEqualTo(Task.Status.RUNNING);
 
 		currentTime.set(Instant.ofEpochMilli(5*60*1000+1));
 		new Sleep(10).run();
 		task = store.read(id);
 		assertThat(task).isPresent();
-		assertThat(task.get().getStatus()).isEqualTo(Task.Status.finished);
+		assertThat(task.get().getStatus()).isEqualTo(Task.Status.FINISHED);
 		assertThat(task.get().getTimestamp()).isEqualTo(currentTime.get());
 
 	}

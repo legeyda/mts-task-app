@@ -14,6 +14,9 @@ import org.springframework.web.context.request.NativeWebRequest;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
+import static com.legeyda.mts.model.Task.Status.CREATED;
+import static com.legeyda.mts.model.Task.Status.RUNNING;
+
 
 @Controller
 public class TaskApiControllerImpl extends TaskApiController {
@@ -48,11 +51,21 @@ public class TaskApiControllerImpl extends TaskApiController {
 				.orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 	}
 
+
 	private TaskStatus createRestApiTaskObject(Task task) {
 		final TaskStatus result = new TaskStatus();
-		result.setStatus(task.getStatus().getGenStatus());
+		result.setStatus(this.convertStatus(task.getStatus()));
 		result.setTimestamp(task.getTimestamp().atOffset(ZoneOffset.UTC));
 		return result;
+	}
+
+	private TaskStatus.StatusEnum convertStatus(Task.Status src) {
+		switch(src) {
+			case CREATED:  return TaskStatus.StatusEnum.CREATED;
+			case RUNNING:  return TaskStatus.StatusEnum.RUNNING;
+			case FINISHED: return TaskStatus.StatusEnum.FINISHED;
+			default: throw new IllegalArgumentException();
+		}
 	}
 
 }

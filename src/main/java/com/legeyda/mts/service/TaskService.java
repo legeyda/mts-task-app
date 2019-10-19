@@ -26,7 +26,6 @@ public class TaskService {
 	private AsyncTaskExecutor executor;
 	private Integer sleepDuration = 1000;
 
-
 	@Autowired
 	public void setTaskStore(Store<UUID, Task> taskStore) {
 		this.taskStore = taskStore;
@@ -59,7 +58,7 @@ public class TaskService {
 	public UUID createTask() {
 		final UUID id = UUID.randomUUID();
 		taskStore.write(id, (Optional<Task> task) ->
-				Optional.of(new TaskImpl(Task.Status.created, Instant.now())));
+				Optional.of(new TaskImpl(Task.Status.CREATED, Instant.now())));
 		taskWorker.accept(id);
 		return id;
 	}
@@ -70,7 +69,7 @@ public class TaskService {
 		while(true) {
 			result = taskStore.read(taskId);
 			if(!result.isPresent()
-			   || Task.Status.finished.equals(result.get().getStatus())
+			   || Task.Status.FINISHED.equals(result.get().getStatus())
 			   || this.currentTime.get().isAfter(deadline)) {
 				break;
 			}

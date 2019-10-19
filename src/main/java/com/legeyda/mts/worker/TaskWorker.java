@@ -40,9 +40,9 @@ public class TaskWorker implements Consumer<UUID>, Runnable {
 	@Override
 	public void accept(final UUID id) {
 		taskStore.write(id, (Optional<Task> existingTask) -> {
-			if(existingTask.isPresent() && Task.Status.created==existingTask.get().getStatus()) {
+			if(existingTask.isPresent() && Task.Status.CREATED ==existingTask.get().getStatus()) {
 				queue.offer(id);
-				return Optional.of(new TaskImpl(Task.Status.running, this.currentTime.get()));
+				return Optional.of(new TaskImpl(Task.Status.RUNNING, this.currentTime.get()));
 			}
 			return existingTask;
 		});
@@ -57,11 +57,11 @@ public class TaskWorker implements Consumer<UUID>, Runnable {
 				final UUID id = queue.poll();
 				this.taskStore.write(id, (Optional<Task> oldValue) -> {
 					if(oldValue.isPresent()
-							&& Task.Status.running == oldValue.get().getStatus()) {
+							&& Task.Status.RUNNING == oldValue.get().getStatus()) {
 						if(oldValue.get().getTimestamp().plusSeconds(5 * 60).isAfter(this.currentTime.get())) {
 							tryAgainLater.add(id);
 						} else {
-						    return Optional.of(new TaskImpl(Task.Status.finished, this.currentTime.get()));
+						    return Optional.of(new TaskImpl(Task.Status.FINISHED, this.currentTime.get()));
                         }
 					}
 					return oldValue;
