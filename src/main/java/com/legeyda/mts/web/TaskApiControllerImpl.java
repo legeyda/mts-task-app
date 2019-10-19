@@ -13,6 +13,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 
 import java.time.ZoneOffset;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 import static com.legeyda.mts.model.Task.Status.CREATED;
 import static com.legeyda.mts.model.Task.Status.RUNNING;
@@ -39,9 +40,13 @@ public class TaskApiControllerImpl extends TaskApiController {
 
 	@Override
 	public ResponseEntity<TaskStatus> getFinishedTask(@PathVariable("taskId") UUID taskId) {
-		return taskService.getFinishedTask(taskId)
-				.map((Task task) -> new ResponseEntity<>(createRestApiTaskObject(task), HttpStatus.OK))
-				.orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+		try {
+			return taskService.getFinishedTask(taskId)
+					.map((Task task) -> new ResponseEntity<>(createRestApiTaskObject(task), HttpStatus.OK))
+					.orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+		} catch (TimeoutException e) {
+			return new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
+		}
 	}
 
 	@Override

@@ -15,6 +15,7 @@ import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 @Component
@@ -63,19 +64,17 @@ public class TaskService {
 		return id;
 	}
 
-	public Optional<Task> getFinishedTask(@PathVariable("taskId") UUID taskId) {
-		final Instant deadline = this.currentTime.get().plusSeconds(2*60);
+	public Optional<Task> getFinishedTask(@PathVariable("taskId") UUID taskId) throws TimeoutException {
+		final Instant deadline = this.currentTime.get().plusSeconds(5*60);
 		Optional<Task> result;
-		while(true) {
+		do {
 			result = taskStore.read(taskId);
-			if(!result.isPresent()
-			   || Task.Status.FINISHED.equals(result.get().getStatus())
-			   || this.currentTime.get().isAfter(deadline)) {
-				break;
+			if(!result.isPresent() || Task.Status.FINISHED.equals(result.get().getStatus())) {
+				return result;
 			}
 			new Sleep(this.sleepDuration).run();
-		}
-		return result;
+		} while(this.currentTime.get().isBefore(deadline));
+		throw new TimeoutException();
 	}
 
 	public Optional<Task> getTaskSync(@PathVariable("taskId") UUID id) {

@@ -58,7 +58,7 @@ public class TaskWorker implements Consumer<UUID>, Runnable {
 				this.taskStore.write(id, (Optional<Task> oldValue) -> {
 					if(oldValue.isPresent()
 							&& Task.Status.RUNNING == oldValue.get().getStatus()) {
-						if(oldValue.get().getTimestamp().plusSeconds(5 * 60).isAfter(this.currentTime.get())) {
+						if(oldValue.get().getTimestamp().plusSeconds(2 * 60).isAfter(this.currentTime.get())) {
 							tryAgainLater.add(id);
 						} else {
 						    return Optional.of(new TaskImpl(Task.Status.FINISHED, this.currentTime.get()));

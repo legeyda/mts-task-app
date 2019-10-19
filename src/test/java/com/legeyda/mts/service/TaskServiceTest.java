@@ -1,6 +1,7 @@
 package com.legeyda.mts.service;
 
 import com.legeyda.mts.model.Task;
+import com.legeyda.mts.model.TaskImpl;
 import com.legeyda.mts.store.MemoryStore;
 import com.legeyda.mts.store.Store;
 import com.legeyda.mts.util.Sleep;
@@ -54,7 +55,7 @@ public class TaskServiceTest {
 	}
 
 	@Test
-	public void test() throws ExecutionException, InterruptedException {
+	public void testWaitFinished() throws ExecutionException, InterruptedException {
 
 		// добавляем задачу
 		final UUID id = service.createTask();
@@ -77,32 +78,56 @@ public class TaskServiceTest {
 		new Sleep(10).run();
 		assertThat(result).isNotDone();
 
-		// если 2 минуты прошло, то отвечает статусом running так как воркер еще не обработал
+		// если 2 минуты прошло, то отвечает статусом finished
 		currentTime.set(Instant.ofEpochSecond(2*60 + 1));
 		new Sleep(10).run();
 		assertThat(result).isDone();
+		assertThat(result.get().get().getStatus()).isEqualTo(Task.Status.FINISHED);
+	}
 
-		// за минуту до завершения таска вызываем getFinishedTask
-		currentTime.set(Instant.ofEpochSecond(4*60));
-		result = executorService.submit(() -> service.getFinishedTask(id));
+	@Test
+	public void testTimeout() {
+		// добавляем задачу напрямую в стор, чтобы воркер не знал про неё
+		final UUID id = UUID.randomUUID();
+		store.write(id, oldTask -> Optional.of(new TaskImpl(Task.Status.CREATED, Instant.now())));
+		new Sleep(10).run();
 
-		// за мгновение до завершения таска не возвращает ответ, т-к 2 минуты не прошло, а таск ещё не готов
+		// вызываем getFinishedTask
+		Future<Optional<Task>> result = executorService.submit(() -> service.getFinishedTask(id));
+		new Sleep(10).run();
+
+		// сразу не отвечает
+		assertThat(result).isNotDone();
+
+		// через менее чем 5 минут не отвечает
 		currentTime.set(Instant.ofEpochSecond(5*60-1));
 		new Sleep(10).run();
 		assertThat(result).isNotDone();
 
-		// сразу после завершения таска возвращает результат (в итоге через минуту), т-к таск уже выполнен
+		// если 5 минуты прошло, выкидывает timeout
+		currentTime.set(Instant.ofEpochSecond(5*60 + 1));
+		new Sleep(10).run();
+		assertThat(result).isDone();
+	}
+
+
+	@Test
+	public void testImmediate() {
+		// добавляем задачу
+		final UUID id = service.createTask();
+
+		// ждём пока будет завершена
 		currentTime.set(Instant.ofEpochSecond(5*60+1));
 		new Sleep(10).run();
-		assertThat(result).isDone();
-		assertThat(result.get().get().getStatus()).isEqualTo(Task.Status.FINISHED);
+		assertThat(service.getTaskSync(id).get().getStatus()).isEqualTo(Task.Status.FINISHED);
 
-		// если таск уже готов, возвращается сразу
-		result = executorService.submit(() -> service.getFinishedTask(id));
+		// вызываем getFinishedTask
+		Future<Optional<Task>> result = executorService.submit(() -> service.getFinishedTask(id));
 		new Sleep(10).run();
-		assertThat(result).isDone();
-		assertThat(result.get().get().getStatus()).isEqualTo(Task.Status.FINISHED);
 
+		// возвращается сразу
+		assertThat(result).isDone();
+		assertThat(service.getTaskSync(id).get().getStatus()).isEqualTo(Task.Status.FINISHED);
 	}
 
 }

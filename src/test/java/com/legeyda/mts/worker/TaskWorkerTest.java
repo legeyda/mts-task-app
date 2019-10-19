@@ -43,17 +43,20 @@ public class TaskWorkerTest {
 		testee.setSleepDurationMillis(1);
 		executorService.submit(testee);
 
+		// добавляем таск
 		final UUID id = UUID.randomUUID();
 		store.write(id, (Optional<Task> ignoredOldValue) -> Optional.of(new TaskImpl(Task.Status.CREATED, currentTime.get())));
 		testee.accept(id);
 
-		currentTime.set(Instant.ofEpochMilli(5*60*1000-1));
+		// через менее чем 2 минуты ещё выполняется
+		currentTime.set(Instant.ofEpochMilli(2*60*1000-1));
 		new Sleep(10).run();
 		Optional<Task> task = store.read(id);
 		assertThat(task).isPresent();
 		assertThat(task.get().getStatus()).isEqualTo(Task.Status.RUNNING);
 
-		currentTime.set(Instant.ofEpochMilli(5*60*1000+1));
+		// через более чем 2 минуты уже выполнилось и проставилось текущее время
+		currentTime.set(Instant.ofEpochMilli(2*60*1000+1));
 		new Sleep(10).run();
 		task = store.read(id);
 		assertThat(task).isPresent();
